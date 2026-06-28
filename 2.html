@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>លំហាត់លីមីត - លោកគ្រូ រស់ មករា</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Khmer OS Battambang', sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        .math { font-size: 28px; margin: 20px 0; color: #1a73e8; }
+        .author { font-size: 14px; color: #777; margin-bottom: 10px; }
+        select { padding: 10px; margin-bottom: 20px; width: 100%; }
+        input { padding: 12px; width: 100px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; }
+        button { padding: 12px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>លំហាត់លីមីត</h2>
+    <div class="author">រៀបរៀងដោយ៖ លោកគ្រូ រស់ មករា</div>
+    
+    <select id="level" onchange="newProblem()">
+        <option value="easy">កម្រិតមូលដ្ឋាន (Easy)</option>
+        <option value="medium">កម្រិតមធ្យម (Medium)</option>
+        <option value="hard">កម្រិតខ្ពស់ (Hard)</option>
+    </select>
+
+    <div class="math" id="problem">កំពុងផ្ទុក...</div>
+    <input type="number" id="answer" placeholder="ចម្លើយ">
+    <button onclick="check()">ផ្ទៀងផ្ទាត់</button>
+    <p id="feedback"></p>
+    <button style="background:#6c757d;" onclick="newProblem()">លំហាត់ថ្មី</button>
+</div>
+
+<script>
+    let correctAnswer;
+
+    function formatCoeff(coeff, isVariable = true) {
+        if (coeff === 1) return isVariable ? "" : "1";
+        if (coeff === -1) return isVariable ? "-" : "-1";
+        return coeff;
+    }
+
+    function newProblem() {
+        let level = document.getElementById('level').value;
+        let k = 1, range = 5;
+
+        if (level === 'medium') { k = Math.floor(Math.random() * 2) + 2; range = 6; }
+        else if (level === 'hard') { k = Math.floor(Math.random() * 3) + 2; range = 10; }
+
+        let a = Math.floor(Math.random() * (range * 2)) - range;
+        let b = Math.floor(Math.random() * (range * 2)) - range;
+        while(a === b) b = Math.floor(Math.random() * (range * 2)) - range;
+
+        let sum = k * (a + b);
+        let prod = k * (a * b);
+
+        let kx2 = (k === 1) ? "x^2" : `${k}x^2`;
+        let term2 = (sum === 0) ? "" : (sum > 0 ? `- ${formatCoeff(sum)}x` : `+ ${formatCoeff(Math.abs(sum))}x`);
+        let term3 = (prod === 0) ? "" : (prod > 0 ? `+ ${prod}` : `- ${Math.abs(prod)}`);
+        let denom = (a === 0) ? "x" : ((a > 0) ? `x - ${a}` : `x + ${Math.abs(a)}`);
+
+        let tex = `\\lim_{x \\to ${a}} \\frac{${kx2} ${term2} ${term3}}{${denom}}`;
+        document.getElementById('problem').innerHTML = `$$${tex}$$`;
+        MathJax.typesetPromise();
+        
+        correctAnswer = k * (a - b);
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('answer').value = "";
+    }
+
+    function check() {
+        let userAns = document.getElementById('answer').value;
+        if(userAns !== "" && parseInt(userAns) === correctAnswer) {
+            document.getElementById('feedback').innerText = "ត្រឹមត្រូវ! ✅";
+            document.getElementById('feedback').style.color = "green";
+        } else {
+            document.getElementById('feedback').innerText = "ខុសហើយ! ចម្លើយគឺ " + correctAnswer;
+            document.getElementById('feedback').style.color = "red";
+        }
+    }
+    newProblem();
+</script>
+</body>
+</html>
