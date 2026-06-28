@@ -2,73 +2,168 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>លំហាត់លីមីត - គណិតវិទ្យាស្អាត</title>
+    <title>លំហាត់លីមីត - លោកគ្រូ រស់ មករា</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body { font-family: 'Khmer OS Battambang', sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
-        .math { font-size: 28px; margin: 25px 0; color: #1a73e8; }
-        input { padding: 12px; width: 100px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; }
+        .math { font-size: 28px; margin: 25px 0; color: #1a73e8; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .author { font-size: 14px; color: #777; margin-bottom: 20px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        select { padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; }
+        input { padding: 12px; width: 120px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; text-align: center; }
         button { padding: 12px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
-        .new-btn { background: #6c757d; margin-top: 10px; }
+        .btn-new { background: #6c757d; margin-top: 15px; width: 100%; }
+        #feedback { font-size: 18px; font-weight: bold; margin-top: 15px; min-height: 27px; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>គណិតវិទ្យាស្អាត</h2>
+    <h2>ប្រព័ន្ធលំហាត់លីមីត</h2>
+    <div class="author">រៀបរៀងដោយ៖ លោកគ្រូ រស់ មករា</div>
+    
+    <div class="controls">
+        <select id="limitType" onchange="newProblem()">
+            <option value="direct">១. ជំនួសផ្ទាល់</option>
+            <option value="0_over_0" selected>២. រាង ០/០ (ពហុធា)</option>
+            <option value="inf_over_inf">៣. រាង ∞/∞ (អានន្ត)</option>
+        </select>
+        <select id="level" onchange="newProblem()">
+            <option value="easy">កម្រិត ១</option>
+            <option value="medium">កម្រិត ២</option>
+            <option value="hard">កម្រិត ៣</option>
+        </select>
+    </div>
+
     <div class="math" id="problem">កំពុងផ្ទុក...</div>
+    
     <input type="number" id="answer" placeholder="ចម្លើយ">
     <button onclick="check()">ផ្ទៀងផ្ទាត់</button>
-    <p id="feedback"></p>
-    <button class="new-btn" onclick="newProblem()">លំហាត់ថ្មី</button>
+    
+    <div id="feedback"></div>
+    <button class="btn-new" onclick="newProblem()">លំហាត់ថ្មី</button>
 </div>
 
 <script>
     let correctAnswer;
 
-   function formatCoeff(coeff) {
-        if (coeff === 1) return "";    // បើ 1 មិនបាច់បង្ហាញទេ
-        if (coeff === -1) return "-";  // បើ -1 បង្ហាញតែសញ្ញា -
-        return coeff;
+    // អនុគមន៍ជំនួយសម្រាប់តម្រៀបកន្សោមពហុធាឲ្យស្អាត (ax^2 + bx + c)
+    function makePoly(a, b, c) {
+        let str = "";
+        if (a !== 0) {
+            if (a === 1) str += "x^2";
+            else if (a === -1) str += "-x^2";
+            else str += a + "x^2";
+        }
+        if (b !== 0) {
+            let bStr = Math.abs(b) === 1 ? "x" : Math.abs(b) + "x";
+            if (str === "") {
+                str += (b > 0 ? bStr : "-" + bStr);
+            } else {
+                str += (b > 0 ? " + " + bStr : " - " + bStr);
+            }
+        }
+        if (c !== 0) {
+            if (str === "") {
+                str += c;
+            } else {
+                str += (c > 0 ? " + " + c : " - " + Math.abs(c));
+            }
+        }
+        return str === "" ? "0" : str;
     }
 
     function newProblem() {
-        let a = Math.floor(Math.random() * 10) - 5;
-        let b = Math.floor(Math.random() * 10) - 5;
-        while(a === b) b = Math.floor(Math.random() * 10) - 5;
-
-        let sum = a + b;
-        let prod = a * b;
-
-        // កែលម្អភាគយក៖ x^2 - sum*x + prod
-        let term2 = (sum === 0) ? "" : (sum === 1 ? "- x" : (sum === -1 ? "+ x" : (sum > 0 ? `- ${sum}x` : `+ ${Math.abs(sum)}x`)));
-        let term3 = (prod === 0) ? "" : (prod > 0 ? `+ ${prod}` : `- ${Math.abs(prod)}`);
+        let type = document.getElementById('limitType').value;
+        let level = document.getElementById('level').value;
         
-        // កែលម្អភាគបែង៖ បើ a=0 គឺបង្ហាញ x បើមិនអីចឹងទេបង្ហាញ x-a
-        let denom = (a === 0) ? "x" : ((a > 0) ? `x - ${a}` : `x + ${Math.abs(a)}`);
+        let k = 1, range = 4;
+        if (level === 'medium') { k = Math.floor(Math.random() * 2) + 2; range = 6; }
+        else if (level === 'hard') { k = Math.floor(Math.random() * 3) + 2; range = 10; }
 
-        let tex = `\\lim_{x \\to ${a}} \\frac{x^2 ${term2} ${term3}}{${denom}}`;
-        
+        let tex = "";
+
+        if (type === '0_over_0') {
+            // លីមីតរាង 0/0
+            let x0 = Math.floor(Math.random() * (range * 2)) - range;
+            let root2 = Math.floor(Math.random() * (range * 2)) - range;
+            while(x0 === root2) root2 = Math.floor(Math.random() * (range * 2)) - range;
+
+            let num = makePoly(k, -k * (x0 + root2), k * x0 * root2);
+            let den = makePoly(0, 1, -x0);
+            
+            tex = `\\lim_{x \\to ${x0}} \\frac{${num}}{${den}}`;
+            correctAnswer = k * (x0 - root2);
+
+        } else if (type === 'inf_over_inf') {
+            // លីមីតរាង ∞/∞
+            let sign = Math.random() > 0.5 ? "+\\infty" : "-\\infty";
+            
+            // កំណត់ឲ្យចម្លើយជាចំនួនគត់ជានិច្ច ដោយយកមេគុណភាគយកចែកដាច់នឹងភាគបែង
+            let den_a = Math.floor(Math.random() * 4) + 1; // 1 ដល់ 4
+            let ans = Math.floor(Math.random() * 11) - 5; // -5 ដល់ 5
+            let num_a = den_a * ans;
+            
+            // មេគុណបន្ទាប់បន្សំ (ចៃដន្យ)
+            let num_b = Math.floor(Math.random() * (range * 2)) - range;
+            let num_c = Math.floor(Math.random() * (range * 2)) - range;
+            let den_b = Math.floor(Math.random() * (range * 2)) - range;
+            let den_c = Math.floor(Math.random() * (range * 2)) - range;
+
+            let num = makePoly(num_a, num_b, num_c);
+            let den = makePoly(den_a, den_b, den_c);
+
+            tex = `\\lim_{x \\to ${sign}} \\frac{${num}}{${den}}`;
+            correctAnswer = ans;
+
+        } else if (type === 'direct') {
+            // លីមីតជំនួសផ្ទាល់
+            let x0 = Math.floor(Math.random() * 7) - 3; // លេខតូចៗដើម្បីងាយគណនា
+            let a = Math.floor(Math.random() * 5) - 2;
+            let b = Math.floor(Math.random() * (range * 2)) - range;
+            let c = Math.floor(Math.random() * (range * 2)) - range;
+            
+            // បើ a=0 និង b=0 ឲ្យវាចេញលេខយ៉ាងហោចណាស់ក៏មាន x ដែរ
+            if(a === 0 && b === 0) b = 2; 
+
+            let poly = makePoly(a, b, c);
+            tex = `\\lim_{x \\to ${x0}} (${poly})`;
+            correctAnswer = (a * x0 * x0) + (b * x0) + c;
+        }
+
         document.getElementById('problem').innerHTML = `$$${tex}$$`;
         MathJax.typesetPromise();
         
-        correctAnswer = a - b;
         document.getElementById('feedback').innerText = "";
         document.getElementById('answer').value = "";
+        document.getElementById('answer').focus();
     }
 
     function check() {
         let userAns = document.getElementById('answer').value;
-        if(parseInt(userAns) === correctAnswer) {
-            document.getElementById('feedback').innerText = "ត្រឹមត្រូវ! ✅";
-            document.getElementById('feedback').style.color = "green";
+        let feedback = document.getElementById('feedback');
+        
+        if(userAns !== "" && parseInt(userAns) === correctAnswer) {
+            feedback.innerHTML = "✓ ត្រឹមត្រូវ! ពូកែណាស់";
+            feedback.style.color = "#28a745";
+        } else if (userAns === "") {
+            feedback.innerHTML = "សូមបញ្ចូលចម្លើយ!";
+            feedback.style.color = "#dc3545";
         } else {
-            document.getElementById('feedback').innerText = "ខុសហើយ! ចម្លើយគឺ " + correctAnswer;
-            document.getElementById('feedback').style.color = "red";
+            feedback.innerHTML = `✗ ខុសហើយ! ចម្លើយត្រឹមត្រូវគឺ ${correctAnswer}`;
+            feedback.style.color = "#dc3545";
         }
     }
 
+    // អនុញ្ញាតឲ្យចុច Enter ដើម្បីផ្ទៀងផ្ទាត់
+    document.getElementById('answer').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            check();
+        }
+    });
+
+    // បង្កើតលំហាត់ដំបូងពេលបើកវេបសាយ
     newProblem();
 </script>
 
