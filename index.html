@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>លំហាត់លីមីត - គណិតវិទ្យាស្អាត</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Khmer OS Battambang', sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        .math { font-size: 28px; margin: 25px 0; color: #1a73e8; }
+        input { padding: 12px; width: 100px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; }
+        button { padding: 12px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        .new-btn { background: #6c757d; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>គណិតវិទ្យាស្អាត</h2>
+    <div class="math" id="problem">កំពុងផ្ទុក...</div>
+    <input type="number" id="answer" placeholder="ចម្លើយ">
+    <button onclick="check()">ផ្ទៀងផ្ទាត់</button>
+    <p id="feedback"></p>
+    <button class="new-btn" onclick="newProblem()">លំហាត់ថ្មី</button>
+</div>
+
+<script>
+    let correctAnswer;
+
+   function formatCoeff(coeff) {
+        if (coeff === 1) return "";    // បើ 1 មិនបាច់បង្ហាញទេ
+        if (coeff === -1) return "-";  // បើ -1 បង្ហាញតែសញ្ញា -
+        return coeff;
+    }
+
+    function newProblem() {
+        let a = Math.floor(Math.random() * 10) - 5;
+        let b = Math.floor(Math.random() * 10) - 5;
+        while(a === b) b = Math.floor(Math.random() * 10) - 5;
+
+        let sum = a + b;
+        let prod = a * b;
+
+        // កែលម្អភាគយក៖ x^2 - sum*x + prod
+        let term2 = (sum === 0) ? "" : (sum === 1 ? "- x" : (sum === -1 ? "+ x" : (sum > 0 ? `- ${sum}x` : `+ ${Math.abs(sum)}x`)));
+        let term3 = (prod === 0) ? "" : (prod > 0 ? `+ ${prod}` : `- ${Math.abs(prod)}`);
+        
+        // កែលម្អភាគបែង៖ បើ a=0 គឺបង្ហាញ x បើមិនអីចឹងទេបង្ហាញ x-a
+        let denom = (a === 0) ? "x" : ((a > 0) ? `x - ${a}` : `x + ${Math.abs(a)}`);
+
+        let tex = `\\lim_{x \\to ${a}} \\frac{x^2 ${term2} ${term3}}{${denom}}`;
+        
+        document.getElementById('problem').innerHTML = `$$${tex}$$`;
+        MathJax.typesetPromise();
+        
+        correctAnswer = a - b;
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('answer').value = "";
+    }
+
+    function check() {
+        let userAns = document.getElementById('answer').value;
+        if(parseInt(userAns) === correctAnswer) {
+            document.getElementById('feedback').innerText = "ត្រឹមត្រូវ! ✅";
+            document.getElementById('feedback').style.color = "green";
+        } else {
+            document.getElementById('feedback').innerText = "ខុសហើយ! ចម្លើយគឺ " + correctAnswer;
+            document.getElementById('feedback').style.color = "red";
+        }
+    }
+
+    newProblem();
+</script>
+
+</body>
+</html>
