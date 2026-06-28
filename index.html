@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="km">
 <head>
@@ -7,7 +6,7 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body { font-family: 'Khmer OS Battambang', sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 650px; text-align: center; }
         .math { font-size: 28px; margin: 25px 0; color: #1a73e8; min-height: 80px; display: flex; align-items: center; justify-content: center; overflow-x: auto;}
         .author { font-size: 14px; color: #777; margin-bottom: 20px; font-style: italic; }
         .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -49,6 +48,7 @@
             <option value="trigo">ខ. អនុគមន៍ត្រីកោណមាត្រ (Sin, Tan)</option>
             <option value="radical">គ. អនុគមន៍មានរ៉ាឌីកាល់ (គុណកន្សោមឆ្លាស់)</option>
             <option value="1_minus_cos">ឃ. ត្រីកោណមាត្រមាន 1 - cos(ax)</option>
+            <option value="trigo_x_to_a">ង. ត្រីកោណមាត្រ x → a (តាងអថេរថ្មី)</option>
         </select>
     </div>
 
@@ -136,11 +136,10 @@
                 correctAnswer = ans;
                 
             } else if (subType === 'radical') {
-                // រ៉ាឌីកាល់ និងការគុណកន្សោមឆ្លាស់ (ធានាចម្លើយជាលេខគត់)
                 let ans = Math.floor(Math.random() * 8) - 4;
                 if (ans === 0) ans = 3;
-                let c = Math.floor(Math.random() * 3) + 1; // 1 ដល់ 3
-                let a = 2 * c * Math.abs(ans); // a = 2c|ans|
+                let c = Math.floor(Math.random() * 3) + 1; 
+                let a = 2 * c * Math.abs(ans); 
                 let x0 = Math.floor(Math.random() * 7) - 3;
                 let b = c * c - a * x0;
                 
@@ -155,7 +154,6 @@
                 correctAnswer = ans;
                 
             } else if (subType === '1_minus_cos') {
-                // ទម្រង់ 1 - cos(Ax) ភាគ x^2
                 let options = [
                     [2, 1, 2], [2, 2, 1], [2, -1, -2], [2, -2, -1],
                     [4, 2, 4], [4, 4, 2], [4, -2, -4], [4, 1, 8],
@@ -168,6 +166,31 @@
                 let B_str = (B === 1) ? "" : ((B === -1) ? "-" : B);
                 tex = `\\lim_{x \\to 0} \\frac{1 - \\cos(${A}x)}{${B_str} x^2}`;
                 correctAnswer = pick[2];
+                
+            } else if (subType === 'trigo_x_to_a') {
+                // ករណីថ្មី៖ ត្រីកោណមាត្រ x -> a តាងអថេរថ្មី
+                let a = Math.floor(Math.random() * 9) - 4; // លេខពី -4 ដល់ 4
+                if (a === 0) a = 3; // ការពារកុំឱ្យស្មើ 0 ព្រោះវាជាន់គ្នានឹងករណីធម្មតា
+
+                let B = Math.floor(Math.random() * 3) + 1; // មេគុណភាគបែង 1 ដល់ 3
+                let ans = Math.floor(Math.random() * 11) - 5; 
+                if (ans === 0) ans = 4;
+                let A = ans * B; // ធានាថាចម្លើយជាចំនួនគត់ជានិច្ច A/B = ans
+
+                // បង្កើតតួលេខដើម្បីឱ្យចេញរាងពន្លាត Ax - Aa
+                let C_num = -A * a;
+                let C_den = -B * a;
+
+                // ប្រើ makePoly ដើម្បីឱ្យវាសរសេរ x ដោយស្វ័យប្រវត្តិស្អាតល្អ
+                let numInner = makePoly(0, A, C_num);
+                let denInner = makePoly(0, B, C_den);
+
+                // រើសចៃដន្យរវាង Sin និង Tan
+                let trigType = Math.floor(Math.random() * 2);
+                let trigFunc = trigType === 0 ? "\\sin" : "\\tan";
+
+                tex = `\\lim_{x \\to ${a}} \\frac{${trigFunc}(${numInner})}{${denInner}}`;
+                correctAnswer = ans;
             }
 
         } else if (type === '2') { // ∞/∞
