@@ -1,39 +1,48 @@
+
 <!DOCTYPE html>
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>លំហាត់លីមីត - លោកគ្រូ រស់ មករា</title>
+    <title>លំហាត់លីមីតគ្រប់ទម្រង់ - លោកគ្រូ រស់ មករា</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body { font-family: 'Khmer OS Battambang', sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
-        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; }
-        .math { font-size: 28px; margin: 25px 0; color: #1a73e8; min-height: 80px; display: flex; align-items: center; justify-content: center; }
-        .author { font-size: 14px; color: #777; margin-bottom: 20px; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-        select { padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; }
-        input { padding: 12px; width: 120px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; text-align: center; }
-        button { padding: 12px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; }
+        .math { font-size: 28px; margin: 25px 0; color: #1a73e8; min-height: 80px; display: flex; align-items: center; justify-content: center; overflow-x: auto;}
+        .author { font-size: 14px; color: #777; margin-bottom: 20px; font-style: italic; }
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        select { padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 15px; }
+        input { padding: 12px; width: 120px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; text-align: center; outline: none; transition: 0.3s; }
+        input:focus { border-color: #1a73e8; }
+        button { padding: 12px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; font-family: inherit; transition: 0.3s; }
+        button:hover { background: #218838; }
         .btn-new { background: #6c757d; margin-top: 15px; width: 100%; }
+        .btn-new:hover { background: #5a6268; }
         #feedback { font-size: 18px; font-weight: bold; margin-top: 15px; min-height: 27px; }
+        .special-note { font-size: 14px; color: #dc3545; background: #ffeeba; padding: 8px; border-radius: 5px; margin-bottom: 15px; display: none; font-weight: bold;}
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>ប្រព័ន្ធលំហាត់លីមីត</h2>
+    <h2>ប្រព័ន្ធលំហាត់លីមីតគ្រប់ទម្រង់</h2>
     <div class="author">រៀបរៀងដោយ៖ លោកគ្រូ រស់ មករា</div>
     
     <div class="controls">
         <select id="limitType" onchange="newProblem()">
-            <option value="direct">១. ជំនួសផ្ទាល់</option>
-            <option value="0_over_0" selected>២. រាង ០/០ (ពហុធា)</option>
-            <option value="inf_over_inf">៣. រាង ∞/∞ (អានន្ត)</option>
+            <option value="0">១. លីមីតជំនួសលេខផ្ទាល់</option>
+            <option value="1">២. រាងមិនកំណត់ ០/០</option>
+            <option value="2">៣. រាងមិនកំណត់ ∞/∞</option>
+            <option value="3">៤. រាងមិនកំណត់ ០ × ∞</option>
+            <option value="4">៥. រាងមិនកំណត់ ∞ - ∞</option>
+            <option value="5">៦. រាងមិនកំណត់ 1^∞</option>
+            <option value="6">៧. រាងមិនកំណត់ 0^0</option>
+            <option value="7">៨. រាងមិនកំណត់ ∞^0</option>
         </select>
-        <select id="level" onchange="newProblem()">
-            <option value="easy">កម្រិត ១</option>
-            <option value="medium">កម្រិត ២</option>
-            <option value="hard">កម្រិត ៣</option>
-        </select>
+    </div>
+
+    <div class="special-note" id="specialNote">
+        📌 បញ្ជាក់៖ ប្រសិនបើចម្លើយគឺ $$e^k$$ សូមវាយបញ្ចូលតែតម្លៃនិទស្សន្តលេខ $$k$$ ប៉ុណ្ណោះ។
     </div>
 
     <div class="math" id="problem">កំពុងផ្ទុក...</div>
@@ -48,7 +57,6 @@
 <script>
     let correctAnswer;
 
-    // អនុគមន៍ជំនួយសម្រាប់តម្រៀបកន្សោមពហុធាឲ្យស្អាត (ax^2 + bx + c)
     function makePoly(a, b, c) {
         let str = "";
         if (a !== 0) {
@@ -58,78 +66,97 @@
         }
         if (b !== 0) {
             let bStr = Math.abs(b) === 1 ? "x" : Math.abs(b) + "x";
-            if (str === "") {
-                str += (b > 0 ? bStr : "-" + bStr);
-            } else {
-                str += (b > 0 ? " + " + bStr : " - " + bStr);
-            }
+            if (str === "") str += (b > 0 ? bStr : "-" + bStr);
+            else str += (b > 0 ? " + " + bStr : " - " + bStr);
         }
         if (c !== 0) {
-            if (str === "") {
-                str += c;
-            } else {
-                str += (c > 0 ? " + " + c : " - " + Math.abs(c));
-            }
+            if (str === "") str += c;
+            else str += (c > 0 ? " + " + c : " - " + Math.abs(c));
         }
         return str === "" ? "0" : str;
     }
 
     function newProblem() {
         let type = document.getElementById('limitType').value;
-        let level = document.getElementById('level').value;
-        
-        let k = 1, range = 4;
-        if (level === 'medium') { k = Math.floor(Math.random() * 2) + 2; range = 6; }
-        else if (level === 'hard') { k = Math.floor(Math.random() * 3) + 2; range = 10; }
-
+        let note = document.getElementById('specialNote');
         let tex = "";
+        let range = 6;
 
-        if (type === '0_over_0') {
-            // លីមីតរាង 0/0
-            let x0 = Math.floor(Math.random() * (range * 2)) - range;
-            let root2 = Math.floor(Math.random() * (range * 2)) - range;
-            while(x0 === root2) root2 = Math.floor(Math.random() * (range * 2)) - range;
+        // បង្ហាញសារដាស់តឿន e^k សម្រាប់តែរាងអិចស្ប៉ូណង់ស្យែល (ជម្រើសទី ៦, ៧, ៨)
+        note.style.display = (type >= 5) ? "block" : "none";
 
+        if (type === '0') { // ជំនួសលេខផ្ទាល់
+            let x0 = Math.floor(Math.random() * 7) - 3; // -3 ដល់ 3
+            let a = Math.floor(Math.random() * 5) - 2;
+            let b = Math.floor(Math.random() * 10) - 5;
+            let c = Math.floor(Math.random() * 10) - 5;
+            if(a === 0 && b === 0) b = 2; // កុំឲ្យចេញលេខសុទ្ធពេក
+            
+            let poly = makePoly(a, b, c);
+            tex = `\\lim_{x \\to ${x0}} \\left( ${poly} \\right)`;
+            correctAnswer = (a * x0 * x0) + (b * x0) + c;
+
+        } else if (type === '1') { // 0/0
+            let x0 = Math.floor(Math.random() * 10) - 5;
+            let root2 = Math.floor(Math.random() * 10) - 5;
+            while(x0 === root2) root2 = Math.floor(Math.random() * 10) - 5;
+            let k = Math.floor(Math.random() * 3) + 1;
             let num = makePoly(k, -k * (x0 + root2), k * x0 * root2);
             let den = makePoly(0, 1, -x0);
-            
             tex = `\\lim_{x \\to ${x0}} \\frac{${num}}{${den}}`;
             correctAnswer = k * (x0 - root2);
 
-        } else if (type === 'inf_over_inf') {
-            // លីមីតរាង ∞/∞
+        } else if (type === '2') { // ∞/∞
             let sign = Math.random() > 0.5 ? "+\\infty" : "-\\infty";
-            
-            // កំណត់ឲ្យចម្លើយជាចំនួនគត់ជានិច្ច ដោយយកមេគុណភាគយកចែកដាច់នឹងភាគបែង
-            let den_a = Math.floor(Math.random() * 4) + 1; // 1 ដល់ 4
-            let ans = Math.floor(Math.random() * 11) - 5; // -5 ដល់ 5
+            let den_a = Math.floor(Math.random() * 4) + 1; 
+            let ans = Math.floor(Math.random() * 11) - 5; 
             let num_a = den_a * ans;
-            
-            // មេគុណបន្ទាប់បន្សំ (ចៃដន្យ)
-            let num_b = Math.floor(Math.random() * (range * 2)) - range;
-            let num_c = Math.floor(Math.random() * (range * 2)) - range;
-            let den_b = Math.floor(Math.random() * (range * 2)) - range;
-            let den_c = Math.floor(Math.random() * (range * 2)) - range;
-
-            let num = makePoly(num_a, num_b, num_c);
-            let den = makePoly(den_a, den_b, den_c);
-
+            let num_b = Math.floor(Math.random() * 10) - 5;
+            let den_b = Math.floor(Math.random() * 10) - 5;
+            let num = makePoly(num_a, num_b, 0);
+            let den = makePoly(den_a, den_b, 0);
             tex = `\\lim_{x \\to ${sign}} \\frac{${num}}{${den}}`;
             correctAnswer = ans;
 
-        } else if (type === 'direct') {
-            // លីមីតជំនួសផ្ទាល់
-            let x0 = Math.floor(Math.random() * 7) - 3; // លេខតូចៗដើម្បីងាយគណនា
-            let a = Math.floor(Math.random() * 5) - 2;
-            let b = Math.floor(Math.random() * (range * 2)) - range;
-            let c = Math.floor(Math.random() * (range * 2)) - range;
-            
-            // បើ a=0 និង b=0 ឲ្យវាចេញលេខយ៉ាងហោចណាស់ក៏មាន x ដែរ
-            if(a === 0 && b === 0) b = 2; 
+        } else if (type === '3') { // 0 * ∞
+            let b = Math.floor(Math.random() * 5) + 1;
+            let ans = Math.floor(Math.random() * 9) - 4; 
+            if (ans === 0) ans = 3;
+            let a = ans * b;
+            let a_str = a === 1 ? "" : (a === -1 ? "-" : a);
+            let b_str = b === 1 ? "" : b;
+            tex = `\\lim_{x \\to 0} \\left( \\sin(${a_str}x) \\cdot \\cot(${b_str}x) \\right)`;
+            correctAnswer = ans;
 
-            let poly = makePoly(a, b, c);
-            tex = `\\lim_{x \\to ${x0}} (${poly})`;
-            correctAnswer = (a * x0 * x0) + (b * x0) + c;
+        } else if (type === '4') { // ∞ - ∞
+            let a = Math.floor(Math.random() * 10) - 5;
+            let b = Math.floor(Math.random() * 10) - 5;
+            while(a === b) b = Math.floor(Math.random() * 10) - 5;
+            let termA = 2 * a === 0 ? "" : (2 * a > 0 ? `+ ${2*a}x` : `- ${Math.abs(2*a)}x`);
+            let termB = 2 * b === 0 ? "" : (2 * b > 0 ? `+ ${2*b}x` : `- ${Math.abs(2*b)}x`);
+            tex = `\\lim_{x \\to +\\infty} \\left( \\sqrt{x^2 ${termA}} - \\sqrt{x^2 ${termB}} \\right)`;
+            correctAnswer = a - b;
+
+        } else if (type === '5') { // 1^∞
+            let a = Math.floor(Math.random() * 5) + 1;
+            if (Math.random() > 0.5) a = -a;
+            let b = Math.floor(Math.random() * 4) + 1;
+            if (Math.random() > 0.5) b = -b;
+            let signA = a > 0 ? `+ ${a}x` : `- ${Math.abs(a)}x`;
+            tex = `\\lim_{x \\to 0} (1 ${signA})^{\\frac{${b}}{x}}`;
+            correctAnswer = a * b; 
+
+        } else if (type === '6') { // 0^0
+            let a = Math.floor(Math.random() * 9) - 4;
+            if (a === 0) a = 2;
+            tex = `\\lim_{x \\to 0^+} x^{\\frac{${a}}{\\ln x}}`;
+            correctAnswer = a; 
+
+        } else if (type === '7') { // ∞^0
+            let a = Math.floor(Math.random() * 9) - 4;
+            if (a === 0) a = 3;
+            tex = `\\lim_{x \\to +\\infty} x^{\\frac{${a}}{\\ln x}}`;
+            correctAnswer = a; 
         }
 
         document.getElementById('problem').innerHTML = `$$${tex}$$`;
@@ -156,14 +183,10 @@
         }
     }
 
-    // អនុញ្ញាតឲ្យចុច Enter ដើម្បីផ្ទៀងផ្ទាត់
     document.getElementById('answer').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            check();
-        }
+        if (e.key === 'Enter') check();
     });
 
-    // បង្កើតលំហាត់ដំបូងពេលបើកវេបសាយ
     newProblem();
 </script>
 
