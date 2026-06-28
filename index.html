@@ -11,7 +11,11 @@
         .math { font-size: 28px; margin: 25px 0; color: #1a73e8; min-height: 80px; display: flex; align-items: center; justify-content: center; overflow-x: auto;}
         .author { font-size: 14px; color: #777; margin-bottom: 20px; font-style: italic; }
         .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        select { padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 15px; }
+        select { padding: 10px; width: 100%; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 15px; outline: none; }
+        select:focus { border-color: #1a73e8; }
+        
+        #subType { display: none; background-color: #f1f8ff; border-color: #1a73e8; } 
+
         input { padding: 12px; width: 120px; font-size: 18px; border: 2px solid #ccc; border-radius: 5px; text-align: center; outline: none; transition: 0.3s; }
         input:focus { border-color: #1a73e8; }
         button { padding: 12px 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; font-family: inherit; transition: 0.3s; }
@@ -38,6 +42,13 @@
             <option value="5">៦. រាងមិនកំណត់ 1^∞</option>
             <option value="6">៧. រាងមិនកំណត់ 0^0</option>
             <option value="7">៨. រាងមិនកំណត់ ∞^0</option>
+        </select>
+
+        <select id="subType" onchange="newProblem()">
+            <option value="rational">ក. អនុគមន៍សនិទាន (ភាគយក/ភាគបែង)</option>
+            <option value="trigo">ខ. អនុគមន៍ត្រីកោណមាត្រ (Sin, Tan)</option>
+            <option value="radical">គ. អនុគមន៍មានរ៉ាឌីកាល់ (គុណកន្សោមឆ្លាស់)</option>
+            <option value="1_minus_cos">ឃ. ត្រីកោណមាត្រមាន 1 - cos(ax)</option>
         </select>
     </div>
 
@@ -78,33 +89,86 @@
 
     function newProblem() {
         let type = document.getElementById('limitType').value;
+        let subType = document.getElementById('subType').value;
+        let subTypeSelect = document.getElementById('subType');
         let note = document.getElementById('specialNote');
+        
         let tex = "";
-        let range = 6;
-
-        // បង្ហាញសារដាស់តឿន e^k សម្រាប់តែរាងអិចស្ប៉ូណង់ស្យែល (ជម្រើសទី ៦, ៧, ៨)
+        
+        subTypeSelect.style.display = (type === '1') ? "block" : "none";
         note.style.display = (type >= 5) ? "block" : "none";
 
-        if (type === '0') { // ជំនួសលេខផ្ទាល់
-            let x0 = Math.floor(Math.random() * 7) - 3; // -3 ដល់ 3
+        if (type === '0') { 
+            let x0 = Math.floor(Math.random() * 7) - 3; 
             let a = Math.floor(Math.random() * 5) - 2;
             let b = Math.floor(Math.random() * 10) - 5;
             let c = Math.floor(Math.random() * 10) - 5;
-            if(a === 0 && b === 0) b = 2; // កុំឲ្យចេញលេខសុទ្ធពេក
+            if(a === 0 && b === 0) b = 2; 
             
             let poly = makePoly(a, b, c);
             tex = `\\lim_{x \\to ${x0}} \\left( ${poly} \\right)`;
             correctAnswer = (a * x0 * x0) + (b * x0) + c;
 
-        } else if (type === '1') { // 0/0
-            let x0 = Math.floor(Math.random() * 10) - 5;
-            let root2 = Math.floor(Math.random() * 10) - 5;
-            while(x0 === root2) root2 = Math.floor(Math.random() * 10) - 5;
-            let k = Math.floor(Math.random() * 3) + 1;
-            let num = makePoly(k, -k * (x0 + root2), k * x0 * root2);
-            let den = makePoly(0, 1, -x0);
-            tex = `\\lim_{x \\to ${x0}} \\frac{${num}}{${den}}`;
-            correctAnswer = k * (x0 - root2);
+        } else if (type === '1') { 
+            if (subType === 'rational') {
+                let x0 = Math.floor(Math.random() * 10) - 5;
+                let root2 = Math.floor(Math.random() * 10) - 5;
+                while(x0 === root2) root2 = Math.floor(Math.random() * 10) - 5;
+                let k = Math.floor(Math.random() * 3) + 1;
+                let num = makePoly(k, -k * (x0 + root2), k * x0 * root2);
+                let den = makePoly(0, 1, -x0);
+                tex = `\\lim_{x \\to ${x0}} \\frac{${num}}{${den}}`;
+                correctAnswer = k * (x0 - root2);
+                
+            } else if (subType === 'trigo') {
+                let b = Math.floor(Math.random() * 5) + 1; 
+                let ans = Math.floor(Math.random() * 11) - 5; 
+                if (ans === 0) ans = 2;
+                let a = ans * b;
+                
+                let aStr = (a === 1) ? "" : ((a === -1) ? "-" : a);
+                let bStr = (b === 1) ? "" : ((b === -1) ? "-" : b);
+                
+                let trigType = Math.floor(Math.random() * 3);
+                if (trigType === 0) tex = `\\lim_{x \\to 0} \\frac{\\sin(${aStr}x)}{${bStr}x}`;
+                else if (trigType === 1) tex = `\\lim_{x \\to 0} \\frac{\\tan(${aStr}x)}{${bStr}x}`;
+                else tex = `\\lim_{x \\to 0} \\frac{\\sin(${aStr}x)}{\\tan(${bStr}x)}`;
+                correctAnswer = ans;
+                
+            } else if (subType === 'radical') {
+                // រ៉ាឌីកាល់ និងការគុណកន្សោមឆ្លាស់ (ធានាចម្លើយជាលេខគត់)
+                let ans = Math.floor(Math.random() * 8) - 4;
+                if (ans === 0) ans = 3;
+                let c = Math.floor(Math.random() * 3) + 1; // 1 ដល់ 3
+                let a = 2 * c * Math.abs(ans); // a = 2c|ans|
+                let x0 = Math.floor(Math.random() * 7) - 3;
+                let b = c * c - a * x0;
+                
+                let inner = (a === 1 ? "x" : a + "x") + (b === 0 ? "" : (b > 0 ? " + " + b : " - " + Math.abs(b)));
+                let den = "x" + (x0 === 0 ? "" : (x0 > 0 ? " - " + x0 : " + " + Math.abs(x0)));
+                
+                if (ans > 0) {
+                    tex = `\\lim_{x \\to ${x0}} \\frac{\\sqrt{${inner}} - ${c}}{${den}}`;
+                } else {
+                    tex = `\\lim_{x \\to ${x0}} \\frac{${c} - \\sqrt{${inner}}}{${den}}`;
+                }
+                correctAnswer = ans;
+                
+            } else if (subType === '1_minus_cos') {
+                // ទម្រង់ 1 - cos(Ax) ភាគ x^2
+                let options = [
+                    [2, 1, 2], [2, 2, 1], [2, -1, -2], [2, -2, -1],
+                    [4, 2, 4], [4, 4, 2], [4, -2, -4], [4, 1, 8],
+                    [6, 2, 9], [6, 3, 6], [6, -3, -6]
+                ];
+                let pick = options[Math.floor(Math.random() * options.length)];
+                let A = pick[0];
+                let B = pick[1];
+                
+                let B_str = (B === 1) ? "" : ((B === -1) ? "-" : B);
+                tex = `\\lim_{x \\to 0} \\frac{1 - \\cos(${A}x)}{${B_str} x^2}`;
+                correctAnswer = pick[2];
+            }
 
         } else if (type === '2') { // ∞/∞
             let sign = Math.random() > 0.5 ? "+\\infty" : "-\\infty";
