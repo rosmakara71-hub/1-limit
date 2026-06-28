@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>លំហាត់លីមីតគ្រប់ទម្រង់ - លោកគ្រូ រស់ មករា</title>
+    <title>លំហាត់លីមីតត្រៀមប្រឡង - លោកគ្រូ រស់ មករា</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body { font-family: 'Khmer OS Battambang', sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
@@ -28,11 +29,12 @@
 <body>
 
 <div class="box">
-    <h2>ប្រព័ន្ធលំហាត់លីមីតគ្រប់ទម្រង់</h2>
+    <h2>ប្រព័ន្ធលំហាត់លីមីតត្រៀមប្រឡង</h2>
     <div class="author">រៀបរៀងដោយ៖ លោកគ្រូ រស់ មករា</div>
     
     <div class="controls">
         <select id="limitType" onchange="newProblem()">
+            <option value="bacii" style="font-weight: bold; background: #e8f0fe; color: #1a73e8;">៩. វិញ្ញាសាប្រឡងបាក់ឌុប (ចម្រុះ)</option>
             <option value="0">១. លីមីតជំនួសលេខផ្ទាល់</option>
             <option value="1">២. រាងមិនកំណត់ ០/០</option>
             <option value="2">៣. រាងមិនកំណត់ ∞/∞</option>
@@ -96,15 +98,73 @@
         let tex = "";
         
         subTypeSelect.style.display = (type === '1') ? "block" : "none";
-        note.style.display = (type >= 5) ? "block" : "none";
+        note.style.display = (type >= 5 && type !== 'bacii') ? "block" : "none";
 
-        if (type === '0') { 
+        if (type === 'bacii') {
+            // វិញ្ញាសាបាក់ឌុប (Random 4 ទម្រង់ពេញនិយម)
+            let baciiCat = Math.floor(Math.random() * 4);
+            
+            if (baciiCat === 0) { 
+                // អិចស្ប៉ូណង់ស្យែល (e^ax - e^bx)/x
+                let a = Math.floor(Math.random() * 7) - 3;
+                if (a === 0) a = 4;
+                let b = Math.floor(Math.random() * 7) - 3;
+                while (a === b) b = Math.floor(Math.random() * 7) - 3;
+                
+                let aStr = a === 1 ? "x" : (a === -1 ? "-x" : a + "x");
+                let bStr = b === 1 ? "x" : (b === -1 ? "-x" : b + "x");
+                let e1 = `e^{${aStr}}`;
+                let e2 = b === 0 ? "1" : `e^{${bStr}}`;
+                
+                tex = `\\lim_{x \\to 0} \\frac{${e1} - ${e2}}{x}`;
+                correctAnswer = a - b;
+                
+            } else if (baciiCat === 1) { 
+                // ឡូការីតនេពែ ln(1+ax)/x
+                let a = Math.floor(Math.random() * 9) - 4;
+                if (a === 0) a = 5;
+                let term = a > 0 ? `+ ${a===1?'':a}x` : `- ${Math.abs(a)===1?'':Math.abs(a)}x`;
+                
+                tex = `\\lim_{x \\to 0} \\frac{\\ln(1 ${term})}{x}`;
+                correctAnswer = a;
+                
+            } else if (baciiCat === 2) { 
+                // ត្រីកោណមាត្រ x -> a (តាងអថេរ)
+                let a = Math.floor(Math.random() * 5) + 1; 
+                let ans = Math.floor(Math.random() * 7) - 3; 
+                if (ans === 0) ans = 2;
+                
+                let numInner = makePoly(0, ans, -ans * a);
+                let denInner = makePoly(0, 1, -a);
+                tex = `\\lim_{x \\to ${a}} \\frac{\\sin(${numInner})}{${denInner}}`;
+                correctAnswer = ans;
+                
+            } else if (baciiCat === 3) { 
+                // រ៉ាឌីកាល់កន្សោមឆ្លាស់
+                let ans = Math.floor(Math.random() * 6) - 3;
+                if (ans === 0) ans = 2;
+                let c = Math.floor(Math.random() * 3) + 1; 
+                let a = 2 * c * Math.abs(ans); 
+                let x0 = Math.floor(Math.random() * 5) + 1;
+                let b = c * c - a * x0;
+                
+                let inner = (a === 1 ? "x" : a + "x") + (b === 0 ? "" : (b > 0 ? " + " + b : " - " + Math.abs(b)));
+                let den = "x" + (x0 === 0 ? "" : (x0 > 0 ? " - " + x0 : " + " + Math.abs(x0)));
+                
+                if (ans > 0) {
+                    tex = `\\lim_{x \\to ${x0}} \\frac{\\sqrt{${inner}} - ${c}}{${den}}`;
+                } else {
+                    tex = `\\lim_{x \\to ${x0}} \\frac{${c} - \\sqrt{${inner}}}{${den}}`;
+                }
+                correctAnswer = ans;
+            }
+
+        } else if (type === '0') { 
             let x0 = Math.floor(Math.random() * 7) - 3; 
             let a = Math.floor(Math.random() * 5) - 2;
             let b = Math.floor(Math.random() * 10) - 5;
             let c = Math.floor(Math.random() * 10) - 5;
             if(a === 0 && b === 0) b = 2; 
-            
             let poly = makePoly(a, b, c);
             tex = `\\lim_{x \\to ${x0}} \\left( ${poly} \\right)`;
             correctAnswer = (a * x0 * x0) + (b * x0) + c;
@@ -125,10 +185,8 @@
                 let ans = Math.floor(Math.random() * 11) - 5; 
                 if (ans === 0) ans = 2;
                 let a = ans * b;
-                
                 let aStr = (a === 1) ? "" : ((a === -1) ? "-" : a);
                 let bStr = (b === 1) ? "" : ((b === -1) ? "-" : b);
-                
                 let trigType = Math.floor(Math.random() * 3);
                 if (trigType === 0) tex = `\\lim_{x \\to 0} \\frac{\\sin(${aStr}x)}{${bStr}x}`;
                 else if (trigType === 1) tex = `\\lim_{x \\to 0} \\frac{\\tan(${aStr}x)}{${bStr}x}`;
@@ -142,70 +200,43 @@
                 let a = 2 * c * Math.abs(ans); 
                 let x0 = Math.floor(Math.random() * 7) - 3;
                 let b = c * c - a * x0;
-                
                 let inner = (a === 1 ? "x" : a + "x") + (b === 0 ? "" : (b > 0 ? " + " + b : " - " + Math.abs(b)));
                 let den = "x" + (x0 === 0 ? "" : (x0 > 0 ? " - " + x0 : " + " + Math.abs(x0)));
-                
-                if (ans > 0) {
-                    tex = `\\lim_{x \\to ${x0}} \\frac{\\sqrt{${inner}} - ${c}}{${den}}`;
-                } else {
-                    tex = `\\lim_{x \\to ${x0}} \\frac{${c} - \\sqrt{${inner}}}{${den}}`;
-                }
+                if (ans > 0) tex = `\\lim_{x \\to ${x0}} \\frac{\\sqrt{${inner}} - ${c}}{${den}}`;
+                else tex = `\\lim_{x \\to ${x0}} \\frac{${c} - \\sqrt{${inner}}}{${den}}`;
                 correctAnswer = ans;
                 
             } else if (subType === '1_minus_cos') {
-                let options = [
-                    [2, 1, 2], [2, 2, 1], [2, -1, -2], [2, -2, -1],
-                    [4, 2, 4], [4, 4, 2], [4, -2, -4], [4, 1, 8],
-                    [6, 2, 9], [6, 3, 6], [6, -3, -6]
-                ];
+                let options = [ [2, 1, 2], [2, 2, 1], [2, -1, -2], [2, -2, -1], [4, 2, 4], [4, 4, 2], [4, -2, -4], [4, 1, 8], [6, 2, 9], [6, 3, 6], [6, -3, -6] ];
                 let pick = options[Math.floor(Math.random() * options.length)];
-                let A = pick[0];
-                let B = pick[1];
-                
-                let B_str = (B === 1) ? "" : ((B === -1) ? "-" : B);
-                tex = `\\lim_{x \\to 0} \\frac{1 - \\cos(${A}x)}{${B_str} x^2}`;
+                let B_str = (pick[1] === 1) ? "" : ((pick[1] === -1) ? "-" : pick[1]);
+                tex = `\\lim_{x \\to 0} \\frac{1 - \\cos(${pick[0]}x)}{${B_str} x^2}`;
                 correctAnswer = pick[2];
                 
             } else if (subType === 'trigo_x_to_a') {
-                // ករណីថ្មី៖ ត្រីកោណមាត្រ x -> a តាងអថេរថ្មី
-                let a = Math.floor(Math.random() * 9) - 4; // លេខពី -4 ដល់ 4
-                if (a === 0) a = 3; // ការពារកុំឱ្យស្មើ 0 ព្រោះវាជាន់គ្នានឹងករណីធម្មតា
-
-                let B = Math.floor(Math.random() * 3) + 1; // មេគុណភាគបែង 1 ដល់ 3
+                let a = Math.floor(Math.random() * 9) - 4; 
+                if (a === 0) a = 3; 
+                let B = Math.floor(Math.random() * 3) + 1; 
                 let ans = Math.floor(Math.random() * 11) - 5; 
                 if (ans === 0) ans = 4;
-                let A = ans * B; // ធានាថាចម្លើយជាចំនួនគត់ជានិច្ច A/B = ans
-
-                // បង្កើតតួលេខដើម្បីឱ្យចេញរាងពន្លាត Ax - Aa
-                let C_num = -A * a;
-                let C_den = -B * a;
-
-                // ប្រើ makePoly ដើម្បីឱ្យវាសរសេរ x ដោយស្វ័យប្រវត្តិស្អាតល្អ
-                let numInner = makePoly(0, A, C_num);
-                let denInner = makePoly(0, B, C_den);
-
-                // រើសចៃដន្យរវាង Sin និង Tan
-                let trigType = Math.floor(Math.random() * 2);
-                let trigFunc = trigType === 0 ? "\\sin" : "\\tan";
-
+                let A = ans * B; 
+                let numInner = makePoly(0, A, -A * a);
+                let denInner = makePoly(0, B, -B * a);
+                let trigFunc = Math.floor(Math.random() * 2) === 0 ? "\\sin" : "\\tan";
                 tex = `\\lim_{x \\to ${a}} \\frac{${trigFunc}(${numInner})}{${denInner}}`;
                 correctAnswer = ans;
             }
 
-        } else if (type === '2') { // ∞/∞
+        } else if (type === '2') { 
             let sign = Math.random() > 0.5 ? "+\\infty" : "-\\infty";
             let den_a = Math.floor(Math.random() * 4) + 1; 
             let ans = Math.floor(Math.random() * 11) - 5; 
-            let num_a = den_a * ans;
-            let num_b = Math.floor(Math.random() * 10) - 5;
-            let den_b = Math.floor(Math.random() * 10) - 5;
-            let num = makePoly(num_a, num_b, 0);
-            let den = makePoly(den_a, den_b, 0);
+            let num = makePoly(den_a * ans, Math.floor(Math.random() * 10) - 5, 0);
+            let den = makePoly(den_a, Math.floor(Math.random() * 10) - 5, 0);
             tex = `\\lim_{x \\to ${sign}} \\frac{${num}}{${den}}`;
             correctAnswer = ans;
 
-        } else if (type === '3') { // 0 * ∞
+        } else if (type === '3') { 
             let b = Math.floor(Math.random() * 5) + 1;
             let ans = Math.floor(Math.random() * 9) - 4; 
             if (ans === 0) ans = 3;
@@ -215,7 +246,7 @@
             tex = `\\lim_{x \\to 0} \\left( \\sin(${a_str}x) \\cdot \\cot(${b_str}x) \\right)`;
             correctAnswer = ans;
 
-        } else if (type === '4') { // ∞ - ∞
+        } else if (type === '4') { 
             let a = Math.floor(Math.random() * 10) - 5;
             let b = Math.floor(Math.random() * 10) - 5;
             while(a === b) b = Math.floor(Math.random() * 10) - 5;
@@ -224,7 +255,7 @@
             tex = `\\lim_{x \\to +\\infty} \\left( \\sqrt{x^2 ${termA}} - \\sqrt{x^2 ${termB}} \\right)`;
             correctAnswer = a - b;
 
-        } else if (type === '5') { // 1^∞
+        } else if (type === '5') { 
             let a = Math.floor(Math.random() * 5) + 1;
             if (Math.random() > 0.5) a = -a;
             let b = Math.floor(Math.random() * 4) + 1;
@@ -233,13 +264,13 @@
             tex = `\\lim_{x \\to 0} (1 ${signA})^{\\frac{${b}}{x}}`;
             correctAnswer = a * b; 
 
-        } else if (type === '6') { // 0^0
+        } else if (type === '6') { 
             let a = Math.floor(Math.random() * 9) - 4;
             if (a === 0) a = 2;
             tex = `\\lim_{x \\to 0^+} x^{\\frac{${a}}{\\ln x}}`;
             correctAnswer = a; 
 
-        } else if (type === '7') { // ∞^0
+        } else if (type === '7') { 
             let a = Math.floor(Math.random() * 9) - 4;
             if (a === 0) a = 3;
             tex = `\\lim_{x \\to +\\infty} x^{\\frac{${a}}{\\ln x}}`;
